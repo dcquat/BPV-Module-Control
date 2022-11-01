@@ -38,8 +38,7 @@ module manual_control(
     //ouput to control @ state three w/enter input set high
     reg [1:0] state;
     reg [1:0] next_state;
-    reg [4:0] angle_reg;
-    reg refl_reg;
+
     
     parameter zero = 2'b00, one = 2'b01;
     parameter two = 2'b10, three = 2'b11;
@@ -49,7 +48,7 @@ module manual_control(
     Machine state logic is relatively simple. Complexity arises from the need
     to store inputs then output to control synchronously
     */
-    always@(angle_set or refl_set or enter or res)begin
+    always@(posedge clk)begin
     case(state)
         zero: begin
             
@@ -86,44 +85,33 @@ module manual_control(
     endcase
     end
     
-    // still need to add outputs/register assignments below
     always@(posedge clk) begin
         if(res)begin
             state = zero;
             angle_out = 4'b0000;
             refl_out = 1'b0;
-            angle_reg = 5'b00000;
-            refl_reg = 1'b0;
         end
         
         else
-            case(state)
+            case(next_state)
                 zero: begin
-                    angle_out = 4'b0000;
-                    refl_out = 1'b0;
-                    angle_reg <= 5'b00000;
-                    refl_reg <= 1'b0;
+                    angle_out <= 4'b0000;
+                    refl_out <= 1'b0;
                 end
                 
                 one: begin
                     angle_out <= 4'b0000;
                     refl_out <= 1'b0;
-                    angle_reg <= angle;
-                    refl_reg <= 1'b0;
                 end
                 
                 two: begin 
-                    angle_out <= 4'b0000;
+                    angle_out <= angle;
                     refl_out <= 1'b0;
-                    angle_reg <= angle_reg;
-                    refl_reg <= refl;
                 end
                 
                 three: begin
-                    angle_out <= angle_reg;
-                    refl_out <= refl_reg;
-                    angle_reg <= angle_reg;
-                    refl_reg <= refl_reg;
+                    angle_out <= angle;
+                    refl_out <= refl;
                 end
             
             endcase
